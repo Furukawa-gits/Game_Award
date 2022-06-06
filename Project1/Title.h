@@ -48,6 +48,26 @@ public:
 	};
 	NOW_DIRECT_STATE titleDirectState;
 
+	int frame = 0;
+	const int TITLE_ALPHA_EASE_TIME = 90;
+	float titleAlpha = 0.0f;
+	const float S_ALPHA = 0.0f;
+	const float E_ALPHA = 1.0f;
+	RVector3 title_s_lt = { Raki_WinAPI::window_width / 2 - (380 / 2) ,
+		Raki_WinAPI::window_height / 4 - (380 / 2) + 60 + 60 ,0 };
+	RVector3 title_e_lt = { Raki_WinAPI::window_width / 2 - (380 / 2) ,
+		Raki_WinAPI::window_height / 4 - (380 / 2) + 60 ,0};
+	RVector3 title_lt;
+
+	float title_width = 380;
+	float title_height = 380;
+
+	const int BUTTON_EASE_TIME		= 90;
+	RVector3 s_lt = { 500,595,0 };
+	RVector3 e_lt = { 500,495,0 };
+	RVector3 ui_lt;
+	float buttonAlpha = 0.0f;
+
 	enum NOW_SELECTING
 	{
 		is_start,
@@ -63,6 +83,7 @@ public:
 	Sprite titleBackScreen;
 	Sprite titleLogo;
 	Sprite titleFont;
+	Sprite titleAButton;
 	
 	//ƒ{ƒ^ƒ“
 	UI_Button go_next_Button;
@@ -77,6 +98,8 @@ public:
 	const int MENUICON_SIZE_Y = 60;
 	const int MENUICON_SIZE_X = 280;
 	const int MENUICON_OFFSET = 30;
+
+	SoundData uiMoveSound;
 
 };
 

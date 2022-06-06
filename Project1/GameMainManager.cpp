@@ -4,6 +4,7 @@
 #include "Stage.h"
 #include "Player.h"
 #include "SChangeDir.h"
+#include "BackGroundGraphic.h"
 
 namespace
 {
@@ -37,13 +38,19 @@ void GameMainManager::Init()
 
 	tutorial.Create();
 
-	stageClearCtrl.Init();
+	stageClearCtrl.Init(selecterPtr);
+
+	gameMainGraphHandle = RenderTargetManager::GetInstance()->CreateRenderTexture(
+		Raki_WinAPI::window_width, Raki_WinAPI::window_height);
 }
 
 void GameMainManager::Update()
 {
 	if (!player->IsGoal) {
 		Audio::PlayLoadedSound(playBGM);
+	}
+	else {
+		Audio::StopLoadedSound(playBGM);
 	}
 
 	//ゲーム内インスタンスの更新処理（ようは俺が作ってないクラスの更新処理。ややこしくなるからラップした）
@@ -87,9 +94,18 @@ void GameMainManager::Update()
 
 void GameMainManager::Draw()
 {
+	//ハンドル設定
+	RenderTargetManager::GetInstance()->SetRenderTarget(gameMainGraphHandle);
+	RenderTargetManager::GetInstance()->ClearRenderTexture(gameMainGraphHandle);
+
+	//ゲーム本編描画
 	GameInstanceDraw();
 
-	stageClearCtrl.Draw();
+	////ハンドル戻す
+	RenderTargetManager::GetInstance()->SetDrawBackBuffer();
+
+	//ステージクリア時の描画(ハンドル渡す)
+	stageClearCtrl.Draw(gameMainGraphHandle);
 }
 
 void GameMainManager::Finalize()
@@ -194,20 +210,31 @@ void GameMainManager::SetSelectToGame(int SelectStageNum)
 	changecount = 0;
 	IsStart = false;
 	NowScene = SelectStageNum;
-	stageClearCtrl.Init();
+	stageClearCtrl.Init(selecterPtr);
 
 	//ステージ番号から
 	selecterPtr->LoadStage(SelectStageNum);
 
-	if (NowScene >= 3)
+	if (NowScene >= 8)
 	{
-		if (NowScene == 3)
+		if (NowScene == 8)
 		{
 			tutorial.StartSelectTutorial();
 		}
 		else
 		{
 			tutorial.SkipTutorial(Tutorial::TutorialType::SELECT_TYPE);
+		}
+	}
+	else if (NowScene >= 2)
+	{
+		if (NowScene == 2)
+		{
+			tutorial.StartFoldTutorial();
+		}
+		else
+		{
+			tutorial.SkipTutorial(Tutorial::TutorialType::FOLD_TYPE);
 		}
 	}
 	else if (NowScene >= 1)
@@ -222,6 +249,7 @@ void GameMainManager::SetSelectToGame(int SelectStageNum)
 		}
 	}
 
+
 	SChangeDir::Get()->PlayChangedDirection();
 }
 
@@ -231,6 +259,8 @@ void GameMainManager::SetGameToSelect()
 	Ischangecount = false;
 	IsGoSelect = false;
 	changecount = 0;
+
+	
 
 	tutorial.Init();
 }
@@ -244,8 +274,8 @@ void GameMainManager::GameInstanceDraw()
 {
 	//各ステージの処理
 	SpriteManager::Get()->SetCommonBeginDraw();
-	Back.DrawExtendSprite(0, 0, 1280, 720);
-	Back.Draw();
+	bg.Update();
+	bg.Draw();
 
 	stage->Draw();
 	player->Draw(stage->drawOffsetX, stage->drawOffsetY);

@@ -159,6 +159,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActFlag.cpp" />
+    <ClCompile Include="BackGroundGraphic.cpp" />
     <ClCompile Include="BaseScene.cpp" />
     <ClCompile Include="ButtonUI.cpp" />
     <ClCompile Include="Easing.cpp" />
@@ -243,6 +244,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\SpriteSepiaPS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="Resources\Shaders\SpriteVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -277,6 +284,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActFlag.h" />
+    <ClInclude Include="BackGroundGraphic.h" />
     <ClInclude Include="BaseScene.h" />
     <ClInclude Include="ButtonUI.h" />
     <ClInclude Include="Easing.h" />

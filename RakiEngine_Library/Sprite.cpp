@@ -513,6 +513,7 @@ void Sprite::InstanceUpdate()
         insmap[i].uvOffset = spdata->insWorldMatrixes[i].uvOffset;
         insmap[i].drawsize = spdata->insWorldMatrixes[i].drawsize;
         insmap[i].color = spdata->insWorldMatrixes[i].color;
+        insmap[i].freeData01 = spdata->insWorldMatrixes[i].freeData01;
     }
     spdata->vertInsBuff->Unmap(0, nullptr);
 
@@ -639,7 +640,7 @@ void Sprite::DrawRotaSprite(float x1, float y1, float x2, float y2, float angle)
 
 }
 
-void Sprite::DrawRTexSprite(int handle, float x1, float y1, float x2, float y2, float angle)
+void Sprite::DrawRTexSprite(int handle, float x1, float y1, float x2, float y2, float angle, DirectX::XMFLOAT4 freedata01)
 {
     //���W�����Ƃɕ��s�ړ��s����쐬
     XMMATRIX trans = XMMatrixTranslation(x1, y1, 0);
@@ -657,6 +658,7 @@ void Sprite::DrawRTexSprite(int handle, float x1, float y1, float x2, float y2, 
     ins.uvOffset = { 0.0f,0.0f,1.0f,1.0f };
     //�s��R���e�i�Ɋi�[
     ins.color = sprite_color;
+    ins.freeData01 = freedata01;
     spdata->insWorldMatrixes.push_back(ins);
 
     DrawRenderTexture(handle);

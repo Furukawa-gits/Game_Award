@@ -54,6 +54,8 @@ void StageSelecter::Init()
 	user_selecting = UI_STAGEBOX_1;
 
 	nowDisplayNum = 0;
+
+	uiMoveSound = Audio::LoadSound_wav("Resources/sound/SE/mouse02.wav");
 }
 
 void StageSelecter::Update()
@@ -79,7 +81,6 @@ void StageSelecter::Draw()
 	for (int i = stagePage.size() - 1; i >= 0; i--) {
 		stagePage[i].Draw();
 	}
-
 
 	if (nowpage != StageSelecter::page_1_4)
 	{
@@ -113,11 +114,18 @@ void StageSelecter::GoNextStage()
 
 void StageSelecter::Changing_UI_Number()
 {
+	for (auto& p : stagePage) {
+		if (p.displayNum != 0 && p.displayNum != 19) {
+			return;
+		}
+	}
+
 	//入力によってインクリメント、デクリメント
 	int select_number = static_cast<int>(user_selecting);
 	if (inputManager->LeftTrigger() || Input::isKeyTrigger(DIK_LEFT)) {
 		if (user_selecting != UI_BACK && (nowpage != StageSelecter::page_1_4 || user_selecting != UI_STAGEBOX_1)) { 
 			select_number--; 
+			Audio::PlayLoadedSound(uiMoveSound, true);
 		}
 	}
 
@@ -125,6 +133,7 @@ void StageSelecter::Changing_UI_Number()
 		if (user_selecting != UI_FRONT && (nowpage != StageSelecter::page_17_20 || user_selecting != UI_STAGEBOX_4))
 		{
 			select_number++;
+			Audio::PlayLoadedSound(uiMoveSound, true);
 		}
 	}
 	user_selecting = static_cast<NOW_SELECTING>(select_number);
@@ -266,7 +275,7 @@ void StageSelecter::CheckToStageChangeInput()
 		//ボタン押す
 		stagePage[static_cast<int>(nowpage)].stageIconButton[select_Stage_num].UI_Push();
 		CheckLoadStage(select_Stage_num);
-		state = is_stageSelected_waiting; 
+		state = is_stageSelected_waiting;
 		//これでステージ開始
 		isChanging_GameMain = true;
 	}
@@ -355,6 +364,8 @@ void StageSelecter::LoadStage(int stagenum)
 
 	string stageFullPath = stageFilePath + stageNumber + filename;
 
+	SelectStageNum = stagenum;
+
 	stagePtr->LoadStage(stageFullPath.c_str(), playerPtr->playerTile);
 	playerPtr->Init();
 	playerPtr->BodySetUp(playerPtr->playerTile);
@@ -367,6 +378,37 @@ void StageSelecter::IconReset()
 			page.stageIconButton[i].Reset();
 		}
 	}
+	//直前のステージのページに合わせて、選択位置も合わせておく
+	int page = (SelectStageNum - 1) / 4;
+	nowpage = static_cast<STAGE_PAGE>(page);
+	stagePage[page].isDisplay = true;
+	for (int i = page - 1; i >= 0; i--) {
+		stagePage[i].isDisplay = false;
+	}
+
+	int selectedBoxNum = SelectStageNum % 4;
+
+	switch (selectedBoxNum)
+	{
+	case 1:
+		user_selecting = UI_STAGEBOX_1;
+		break;
+
+	case 2:
+		user_selecting = UI_STAGEBOX_2;
+		break;
+
+	case 3:
+		user_selecting = UI_STAGEBOX_3;
+		break;
+
+	case 0:
+		user_selecting = UI_STAGEBOX_4;
+		break;
+	default:
+		break;
+	}
+
 }
 
 void Page::Init(float xicons[], float yicons[], std::array<UINT,4> uiGraphHandles, UINT cursorR, UINT cursorL, std::array<UINT, 20> backTexture)

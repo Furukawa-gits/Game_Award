@@ -25,13 +25,16 @@ Title::Title(ISceneChanger* changer) : BaseScene(changer)
 	titleBackScreen.Create(TexManager::LoadTexture("Resources/titleResource/titleBack.png"));
 	titleLogo.Create(TexManager::LoadTexture("Resources/titleResource/titleUI03.png"));
 	titleFont.Create(TexManager::LoadTexture("Resources/titleResource/titleUI02.png"));
+	titleAButton.Create(TexManager::LoadTexture("Resources/titleResource/titleUI01.png"));
 
 	go_next_Button.Init(60, TexManager::LoadTexture("Resources/titleResource/titleUI04.png"),
 		MENUICON_SIZE_X, MENUICON_SIZE_Y);
 	go_end_Button.Init(60, TexManager::LoadTexture("Resources/titleResource/titleUI05.png"),
 		MENUICON_SIZE_X, MENUICON_SIZE_Y);
 
-	titleDirectState = TITLE_DIRECT_USER_SELECT;
+	titleDirectState = TITLE_DIRECT_STARTING;
+
+	uiMoveSound = Audio::LoadSound_wav("Resources/sound/SE/mouse02.wav");
 }
 
 //初期化
@@ -52,15 +55,46 @@ void Title::Update()
 {
 	int user_select_index = static_cast<int>(user_selecting);
 
+	float title_rate = static_cast<float>(frame) / static_cast<float>(TITLE_ALPHA_EASE_TIME);
+	float button_rate = static_cast<float>(frame - TITLE_ALPHA_EASE_TIME) / static_cast<float>(BUTTON_EASE_TIME);
+
 	switch (titleDirectState)
 	{
 	case Title::TITLE_DIRECT_STARTING:
+		frame++;
 		//演出系
+		if (frame < TITLE_ALPHA_EASE_TIME) {
+			//タイトルロゴ座標、カラーを補完
+			titleAlpha = S_ALPHA + (E_ALPHA - S_ALPHA) * title_rate;
+			title_lt = Rv3Ease::lerp(title_s_lt, title_e_lt, title_rate);
+		}
+		//ボタンの補完
+		else {
+			//補完
+			buttonAlpha = S_ALPHA + (E_ALPHA - S_ALPHA) * button_rate;
+			ui_lt = Rv3Ease::lerp(s_lt, e_lt, button_rate);
+		}
+
+		//ユーザー選択モード移行
+		if (frame > TITLE_ALPHA_EASE_TIME + BUTTON_EASE_TIME) {
+			titleDirectState = TITLE_DIRECT_USER_SELECT;
+		}
+		if (InputManger::Get()->DecisionTrigger()) {
+			titleAlpha = 1.0f;
+			title_lt = title_e_lt;
+			frame = TITLE_ALPHA_EASE_TIME + BUTTON_EASE_TIME;
+		}
 
 		break;
 	case Title::TITLE_DIRECT_USER_SELECT:
-		if ((inputManger->DownTrigger() || Input::isKeyTrigger(DIK_DOWN)) && user_selecting == is_start) { user_select_index++; }
-		if ((inputManger->UpTrigger() || Input::isKeyTrigger(DIK_UP)) && user_selecting == is_end) { user_select_index--; }
+		if ((inputManger->DownTrigger() || Input::isKeyTrigger(DIK_DOWN)) && user_selecting == is_start) { 
+			user_select_index++;
+			Audio::PlayLoadedSound(uiMoveSound, true);
+		}
+		if ((inputManger->UpTrigger() || Input::isKeyTrigger(DIK_UP)) && user_selecting == is_end) { 
+			user_select_index--; 
+			Audio::PlayLoadedSound(uiMoveSound, true);
+		}
 
 		user_selecting = static_cast<NOW_SELECTING>(user_select_index);
 
@@ -116,18 +150,23 @@ void Title::Draw()
 	titleBackScreen.DrawSprite(0, 0);
 	titleBackScreen.Draw();
 
-	titleLogo.DrawExtendSprite(Raki_WinAPI::window_width / 2 - (380 / 2), Raki_WinAPI::window_height / 4 - (380 / 2),
-		Raki_WinAPI::window_width / 2 + (380 / 2), Raki_WinAPI::window_height / 4 + (380 / 2));
-	titleFont.DrawExtendSprite(Raki_WinAPI::window_width / 2 - (380 / 2), Raki_WinAPI::window_height / 4 - (230 / 2),
-		Raki_WinAPI::window_width / 2 + (380 / 2), Raki_WinAPI::window_height / 4 + (230 / 2));
-
+	//ロゴ表示
+	Sprite::SetSpriteColorParam(1, 1, 1, titleAlpha);
+	titleLogo.DrawExtendSprite(title_lt.x, title_lt.y,
+		title_lt.x + title_width, title_lt.y + title_height);
+	titleFont.DrawExtendSprite(title_lt.x, title_lt.y + title_height * 0.2,
+		title_lt.x + title_width, title_lt.y + title_height * 0.8);
 	titleLogo.Draw();
 	titleFont.Draw();
 
-	go_next_Button.Draw(MENUICON_START_X + MENUICON_SIZE_X / 2,
-		MENUICON_START_Y + MENUICON_SIZE_Y / 2);
-	go_end_Button.Draw(MENUICON_START_X + MENUICON_SIZE_X / 2,
-		MENUICON_START_Y + (MENUICON_SIZE_Y / 2) * 3 + MENUICON_OFFSET);
+	Sprite::SetSpriteColorParam(1, 1, 1, buttonAlpha);
+	go_next_Button.Draw(ui_lt.x + MENUICON_SIZE_X / 2,
+		ui_lt.y + MENUICON_SIZE_Y / 2);
+	go_end_Button.Draw(ui_lt.x + MENUICON_SIZE_X / 2,
+		ui_lt.y + (MENUICON_SIZE_Y / 2) * 3 + MENUICON_OFFSET);
+
+	titleAButton.DrawSprite(Raki_WinAPI::window_width - 188, 634);
+	titleAButton.Draw();
 
 	switch (user_selecting)
 	{
@@ -140,5 +179,11 @@ void Title::Draw()
 	default:
 		break;
 	}
-	cursor.Draw();
+
+	Sprite::SetSpriteColorParam(1, 1, 1, 1);
+
+	if (titleDirectState == TITLE_DIRECT_USER_SELECT) {
+		cursor.Draw();
+	}
+
 }
